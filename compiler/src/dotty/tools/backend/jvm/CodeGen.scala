@@ -40,77 +40,92 @@ class CodeGen(val int: DottyBackendInterface, val primitives: DottyPrimitives)( 
 
   private lazy val mirrorCodeGen = Impl.JMirrorBuilder()
 
-  def genUnit(unit: CompilationUnit): GeneratedDefs = {
+  private def genBCode(using Context) = Phases.genBCodePhase.asInstanceOf[GenBCode]
+  private def postProcessor(using Context) = genBCode.postProcessor
+  private def generatedClassHandler(using Context) = genBCode.generatedClassHandler
+
+  /**
+   * Generate ASM ClassNodes for classes found in a compilation unit. The resulting classes are
+   * passed to the `GenBCode.generatedClassHandler`.
+   */
+  def genUnit(unit: CompilationUnit)(using ctx: Context): Unit = {
     val generatedClasses = mutable.ListBuffer.empty[GeneratedClass]
-    val generatedTasty = mutable.ListBuffer.empty[GeneratedTasty]
 
     def genClassDef(cd: TypeDef): Unit =
       try
         val sym = cd.symbol
         val sourceFile = unit.source.file
+        val tastyBinGen =
+          if sym.isClass then unit.pickled.get(sym.asClass)
+          else None
 
-        def registerGeneratedClass(classNode: ClassNode, isArtifact: Boolean): Unit =
-          generatedClasses += GeneratedClass(classNode, sourceFile, isArtifact, onFileCreated(classNode, sym, unit.source))
-
-        val plainC = genClass(cd, unit)
-        registerGeneratedClass(plainC, isArtifact = false)
-
-        val attrNode =
-          if !sym.isTopLevelModuleClass then plainC
-          else if sym.companionClass == NoSymbol then
-            val mirrorC = genMirrorClass(sym, unit)
-            registerGeneratedClass(mirrorC, isArtifact = true)
-            mirrorC
+        val mainClassNode = genClass(cd, unit)
+        val mirrorClassNode =
+          if !sym.isTopLevelModuleClass then null
+          else if sym.companionClass == NoSymbol then genMirrorClass(sym, unit)
           else
             report.log(s"No mirror class for module with linked class: ${sym.fullName}", NoSourcePosition)
-            plainC
+            null
 
-        if sym.isClass then
-          genTastyAndSetAttributes(sym, attrNode)
+        val tastyAttrNode = if (mirrorClassNode ne null) mirrorClassNode else mainClassNode
+        tastyBinGen.foreach(setTastyAttributes(tastyAttrNode, _))
+
+        // Extract information needed for onFileCreated callbacks
+        val (fullClassName, isLocal) = atPhase(sbtExtractDependenciesPhase) {
+          (ExtractDependencies.classNameAsString(sym), sym.isLocal)
+        }
+
+        def registerGeneratedClass(classNode: ClassNode, isArtifact: Boolean) = if classNode ne null then
+          generatedClasses += GeneratedClass(classNode, sym.javaClassName,
+             position = sym.srcPos.sourcePos,
+             isArtifact = isArtifact,
+             tastyBinGen = if classNode eq tastyAttrNode then tastyBinGen else None,
+             onFileCreated = onFileCreated(classNode, fullClassName, isLocal, unit.source)
+            )
+
+        registerGeneratedClass(mainClassNode, isArtifact = false)
+        registerGeneratedClass(mirrorClassNode, isArtifact = true)
       catch
+        case ex: InterruptedException => throw ex
         case ex: Throwable =>
           ex.printStackTrace()
           report.error(s"Error while emitting ${unit.source}\n${ex.getMessage}", NoSourcePosition)
 
-
-    def genTastyAndSetAttributes(claszSymbol: Symbol, store: ClassNode): Unit =
+    type TastySourceGen = () => Array[Byte]
+    def setTastyAttributes(store: ClassNode, tastySource: TastySourceGen): Unit =
       import Impl.createJAttribute
-      for (binary <- unit.pickled.get(claszSymbol.asClass)) {
-        generatedTasty += GeneratedTasty(store, binary)
-        val tasty =
-          val uuid = new TastyHeaderUnpickler(binary()).readHeader()
-          val lo = uuid.getMostSignificantBits
-          val hi = uuid.getLeastSignificantBits
+      val tastyHeader =
+        val uuid = new TastyHeaderUnpickler(tastySource()).readHeader()
+        val lo = uuid.getMostSignificantBits
+        val hi = uuid.getLeastSignificantBits
 
-          // TASTY attribute is created but only the UUID bytes are stored in it.
-          // A TASTY attribute has length 16 if and only if the .tasty file exists.
-          val buffer = new TastyBuffer(16)
-          buffer.writeUncompressedLong(lo)
-          buffer.writeUncompressedLong(hi)
-          buffer.bytes
+        // TASTY attribute is created but only the UUID bytes are stored in it.
+        // A TASTY attribute has length 16 if and only if the .tasty file exists.
+        val buffer = new TastyBuffer(16)
+        buffer.writeUncompressedLong(lo)
+        buffer.writeUncompressedLong(hi)
+        buffer.bytes
 
-        val dataAttr = createJAttribute(nme.TASTYATTR.mangledString, tasty, 0, tasty.length)
-        store.visitAttribute(dataAttr)
-      }
+      val dataAttr = createJAttribute(nme.TASTYATTR.mangledString, tastyHeader, 0, tastyHeader.length)
+      store.visitAttribute(dataAttr)
 
     def genClassDefs(tree: Tree): Unit =
       tree match {
         case EmptyTree => ()
         case PackageDef(_, stats) => stats foreach genClassDefs
         case ValDef(_, _, _) => () // module val not emitted
-        case td: TypeDef =>  genClassDef(td)
+        case td: TypeDef => frontendAccess.frontendSynch(genClassDef(td))
       }
 
     genClassDefs(unit.tpdTree)
-    GeneratedDefs(generatedClasses.toList, generatedTasty.toList)
+    generatedClassHandler.process(
+      GeneratedCompilationUnit(unit.source.file, generatedClasses.toList)
+    )
   }
 
-  // Creates a callback that will be evaluated in PostProcessor after creating a file
-  private def onFileCreated(cls: ClassNode, claszSymbol: Symbol, sourceFile: interfaces.SourceFile): AbstractFile => Unit = clsFile => {
-    val (fullClassName, isLocal) = atPhase(sbtExtractDependenciesPhase) {
-      (ExtractDependencies.classNameAsString(claszSymbol), claszSymbol.isLocal)
-    }
-
+  // Creates a callback that would be evaluated in PostProcessor after creating a file
+  private def onFileCreated(cls: ClassNode, fullClassName: String, isLocal: Boolean, sourceFile: interfaces.SourceFile): AbstractFile => Unit = clsFile => {
+    import int.given
     val className = cls.name.replace('/', '.')
     if (ctx.compilerCallback != null)
       ctx.compilerCallback.onClassGenerated(sourceFile, convertAbstractFile(clsFile), className)
@@ -134,48 +149,20 @@ class CodeGen(val int: DottyBackendInterface, val primitives: DottyPrimitives)( 
     }
 
   private def genClass(cd: TypeDef, unit: CompilationUnit): ClassNode = {
-    val b = new Impl.PlainClassBuilder(unit)
+    val b = new Impl.SyncAndTryBuilder(unit) {}
     b.genPlainClass(cd)
-    val cls = b.cnode
-    checkForCaseConflict(cls.name, cd.symbol)
-    cls
+    b.cnode
   }
 
   private def genMirrorClass(classSym: Symbol, unit: CompilationUnit): ClassNode = {
-    val cls = mirrorCodeGen.genMirrorClass(classSym, unit)
-    checkForCaseConflict(cls.name, classSym)
-    cls
+    mirrorCodeGen.genMirrorClass(classSym, unit)
   }
 
-  private val lowerCaseNames = mutable.HashMap.empty[String, Symbol]
-  private def checkForCaseConflict(javaClassName: String, classSymbol: Symbol) = {
-    val lowerCaseName = javaClassName.toLowerCase
-    lowerCaseNames.get(lowerCaseName) match {
-      case None =>
-        lowerCaseNames.put(lowerCaseName, classSymbol)
-      case Some(dupClassSym) =>
-        // Order is not deterministic so we enforce lexicographic order between the duplicates for error-reporting
-        val (cl1, cl2) =
-          if (classSymbol.effectiveName.toString < dupClassSym.effectiveName.toString) (classSymbol, dupClassSym)
-          else (dupClassSym, classSymbol)
-        val same = classSymbol.effectiveName.toString == dupClassSym.effectiveName.toString
-        atPhase(typerPhase) {
-          if same then
-             // FIXME: This should really be an error, but then FromTasty tests fail
-            report.warning(s"${cl1.show} and ${cl2.showLocated} produce classes that overwrite one another", cl1.sourcePos)
-          else
-            report.warning(s"${cl1.show} differs only in case from ${cl2.showLocated}. " +
-              "Such classes will overwrite one another on case-insensitive filesystems.", cl1.sourcePos)
-        }
-    }
-  }
 
   sealed transparent trait ImplEarlyInit{
     val int: self.int.type = self.int
     val bTypes: self.bTypes.type = self.bTypes
     protected val primitives: DottyPrimitives = self.primitives
   }
-  object Impl extends ImplEarlyInit with BCodeSyncAndTry {
-    class PlainClassBuilder(unit: CompilationUnit) extends SyncAndTryBuilder(unit)
-  }
+  object Impl extends ImplEarlyInit with BCodeSyncAndTry
 }
