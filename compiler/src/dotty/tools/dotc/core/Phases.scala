@@ -362,6 +362,7 @@ object Phases {
       val doCheckJava = skipIfJava && !isAfterLastJavaPhase
       for unit <- units do
         given unitCtx: Context = runCtx.fresh.setPhase(this.start).setCompilationUnit(unit).withRootImports
+        ctx.profiler.beforeUnit(this, unit)
         if ctx.run.enterUnit(unit) then
           try
             if doCheckJava && unit.typedAsJava then
@@ -371,7 +372,9 @@ object Phases {
           catch case ex: Throwable if !ctx.run.enrichedErrorMessage =>
             println(ctx.run.enrichErrorMessage(s"unhandled exception while running $phaseName on $unit"))
             throw ex
-          finally ctx.run.advanceUnit()
+          finally
+            ctx.profiler.afterUnit(this, unit)
+            ctx.run.advanceUnit()
           buf += unitCtx.compilationUnit
         end if
       end for
