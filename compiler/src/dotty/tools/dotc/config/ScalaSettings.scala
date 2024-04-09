@@ -407,13 +407,13 @@ private sealed trait YSettings:
   val YcompileScala2Library: Setting[Boolean] = BooleanSetting(ForkSetting, "Ycompile-scala2-library", "Used when compiling the Scala 2 standard library.")
   val YoutputOnlyTasty: Setting[Boolean] = BooleanSetting(ForkSetting, "Youtput-only-tasty", "Used to only generate the TASTy file without the classfiles")
   val YprofileEnabled: Setting[Boolean] = BooleanSetting(ForkSetting, "Yprofile-enabled", "Enable profiling.")
-  val YprofileDestination: Setting[String] = StringSetting(ForkSetting, "Yprofile-destination", "file", "Where to send profiling output - specify a file, default is to the console.", "")
+  val YprofileDestination: Setting[String] = StringSetting(ForkSetting, "Yprofile-destination", "file", "Where to send profiling output - specify a file, default is to the console.", "", depends = List(YprofileEnabled -> true))
       //.withPostSetHook( _ => YprofileEnabled.value = true )
-  val YprofileExternalTool: Setting[List[String]] = PhasesSetting(ForkSetting, "Yprofile-external-tool", "Enable profiling for a phase using an external tool hook. Generally only useful for a single phase.", "typer")
+  val YprofileExternalTool: Setting[List[String]] = PhasesSetting(ForkSetting, "Yprofile-external-tool", "Enable profiling for a phase using an external tool hook. Generally only useful for a single phase.", "typer", depends = List(YprofileEnabled -> true))
       //.withPostSetHook( _ => YprofileEnabled.value = true )
-  val YprofileRunGcBetweenPhases: Setting[List[String]] = PhasesSetting(ForkSetting, "Yprofile-run-gc", "Run a GC between phases - this allows heap size to be accurate at the expense of more time. Specify a list of phases, or *", "_")
+  val YprofileRunGcBetweenPhases: Setting[List[String]] = PhasesSetting(ForkSetting, "Yprofile-run-gc", "Run a GC between phases - this allows heap size to be accurate at the expense of more time. Specify a list of phases, or *", "_", depends = List(YprofileEnabled -> true))
       //.withPostSetHook( _ => YprofileEnabled.value = true )
-  val YprofileTrace: Setting[String]  = StringSetting(ForkSetting, "Yprofile-trace", "file", "Capture trace of compilation in Chrome Trace format", "profile.trace")
+  val YprofileTrace: Setting[String]  = StringSetting(ForkSetting, "Yprofile-trace", "file", s"Capture trace of compilation in Chrome Trace format, requires ${YprofileEnabled.name}", "", depends = List(YprofileEnabled -> true))
       //.withPostSetHook( _ => YprofileEnabled.value = true )
 
   // Experimental language features

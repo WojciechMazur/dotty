@@ -67,6 +67,7 @@ object Settings:
   def validateSettingString(name: String): Unit =
     assert(settingCharacters.matches(name), s"Setting string $name contains invalid characters")
 
+  type SettingDependencies = List[(Setting[?], Any)]
 
   case class Setting[T: ClassTag] private[Settings] (
     category: SettingCategory,
@@ -77,7 +78,7 @@ object Settings:
     choices: Option[Seq[?]] = None,
     prefix: Option[String] = None,
     aliases: List[String] = Nil,
-    depends: List[(Setting[?], Any)] = Nil,
+    depends: SettingDependencies = Nil,
     ignoreInvalidArgs: Boolean = false,
     preferPrevious: Boolean = false,
     propertyClass: Option[Class[?]] = None,
@@ -346,8 +347,8 @@ object Settings:
     def BooleanSetting(category: SettingCategory, name: String, descr: String, initialValue: Boolean = false, aliases: List[String] = Nil, preferPrevious: Boolean = false): Setting[Boolean] =
       publish(Setting(category, prependName(name), descr, initialValue, aliases = aliases, preferPrevious = preferPrevious))
 
-    def StringSetting(category: SettingCategory, name: String, helpArg: String, descr: String, default: String, aliases: List[String] = Nil): Setting[String] =
-      publish(Setting(category, prependName(name), descr, default, helpArg, aliases = aliases))
+    def StringSetting(category: SettingCategory, name: String, helpArg: String, descr: String, default: String, aliases: List[String] = Nil, depends: SettingDependencies = Nil): Setting[String] =
+      publish(Setting(category, prependName(name), descr, default, helpArg, aliases = aliases, depends = depends))
 
     def ChoiceSetting(category: SettingCategory, name: String, helpArg: String, descr: String, choices: List[String], default: String, aliases: List[String] = Nil, legacyArgs: Boolean = false): Setting[String] =
       publish(Setting(category, prependName(name), descr, default, helpArg, Some(choices), aliases = aliases, legacyArgs = legacyArgs))
@@ -373,7 +374,7 @@ object Settings:
     def PathSetting(category: SettingCategory, name: String, descr: String, default: String, aliases: List[String] = Nil): Setting[String] =
       publish(Setting(category, prependName(name), descr, default, aliases = aliases))
 
-    def PhasesSetting(category: SettingCategory, name: String, descr: String, default: String = "", aliases: List[String] = Nil): Setting[List[String]] =
+    def PhasesSetting(category: SettingCategory, name: String, descr: String, default: String = "", aliases: List[String] = Nil, depends: SettingDependencies = Nil): Setting[List[String]] =
       publish(Setting(category, prependName(name), descr, if (default.isEmpty) Nil else List(default), aliases = aliases))
 
     def PrefixSetting(category: SettingCategory, name: String, descr: String): Setting[List[String]] =
