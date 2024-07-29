@@ -296,7 +296,7 @@ class ShortenedTypePrinter(
     val (methodParams, extParams) = splitExtensionParamss(gsym)
     val paramss = methodParams ++ extParams
     lazy val implicitParams: List[Symbol] =
-      paramss.flatMap(params => params.filter(p => p.isOneOf(Flags.GivenOrImplicit)))
+      paramss.flatMap(params => params.filter(p => p.is(Flags.Implicit)))
 
     lazy val implicitEvidenceParams: Set[Symbol] =
       implicitParams
