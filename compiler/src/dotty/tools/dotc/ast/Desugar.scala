@@ -300,12 +300,7 @@ object desugar {
       // implicit resolution in Scala 3.
 
     val paramssNoContextBounds =
-      val iflag = paramss.lastOption.flatMap(_.headOption) match
-        case Some(param) if param.mods.isOneOf(GivenOrImplicit) =>
-          param.mods.flags & GivenOrImplicit
-        case _ =>
-          if Feature.sourceVersion.isAtLeast(`3.6`) then Given
-          else Implicit
+      val iflag = if Feature.sourceVersion.isAtLeast(`future`) then Given else Implicit
       val flags = if isPrimaryConstructor then iflag | LocalParamAccessor else iflag | Param
       mapParamss(paramss) {
         tparam => desugarContextBounds(tparam, evidenceParamBuf, flags, freshName, paramss)
@@ -477,14 +472,7 @@ object desugar {
       case ValDefs(mparams) :: _ if mparams.exists(referencesBoundName) =>
         params :: mparamss
       case ValDefs(mparams @ (mparam :: _)) :: Nil if mparam.mods.isOneOf(GivenOrImplicit) =>
-        val normParams =
-          if params.head.mods.flags.is(Given) != mparam.mods.flags.is(Given) then
-            params.map: param =>
-              val normFlags = param.mods.flags &~ GivenOrImplicit | (mparam.mods.flags & (GivenOrImplicit))
-              param.withMods(param.mods.withFlags(normFlags))
-                .showing(i"ADAPTED PARAM $result ${result.mods.flags} for ${meth.name}")
-          else params
-        (normParams ++ mparams) :: Nil
+        (params ++ mparams) :: Nil
       case mparams :: mparamss1 =>
         mparams :: recur(mparamss1)
       case Nil =>
