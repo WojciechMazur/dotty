@@ -82,7 +82,9 @@ jobs:
         shell: bash
         run : |
           sbt --batch --no-colors "show scala3-compiler-bootstrapped/version"
-          version=$(sbt --batch --no-colors "show scala3-compiler-bootstrapped/version" | tee /dev/tty | grep -Eo "3\.[0-9]+\.[0-9]+(-RC[0-9]+)?")
+          version=$(sbt --batch --no-colors "show scala3-compiler-bootstrapped/version" \
+            | tee /dev/stdout \
+            | grep -Eo "3\.[0-9]+\.[0-9]+(-RC[0-9]+)?")
           if [ "${version}" = "${{ env.RELEASE_TAG }}" ]; then
             echo "Compiler version '${version}' matches tag: ${{  env.RELEASE_TAG }}"
           else
@@ -132,9 +134,10 @@ jobs:
         shell: bash
         run : |
           if ! sbt --batch --no-colors "show scala3-compiler-bootstrapped/version" \
-            | tee /dev/tty \
+            | tee /dev/stdout \
             | grep -Eo "3\.[0-9]+\.[0-9]+-RC[0-9]+-bin-[0-9]{8}-[a-zA-Z0-9]{7}-NIGHTLY" >/dev/null 2>&1; then
-            echo "Version used by compiler to publish nightly release does not match pattern"
+            echo "Version used by compiler to publish nightly release does not match expected pattern"
+            exit 1
           fi
   test-snapshot:
     runs-on: [ubuntu-22.04]
