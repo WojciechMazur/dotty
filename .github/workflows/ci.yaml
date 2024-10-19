@@ -76,14 +76,13 @@ jobs:
         run: cp -vf .github/workflows/repositories /root/.sbt/ ; true
       # Extract the release tag
       - name: Extract the release tag
-        run : echo "RELEASE_TAG=3.6.2-RC1" >> $GITHUB_ENV
+        run : echo "RELEASE_TAG=3.6.2" >> $GITHUB_ENV
       # BUILD THE SDKs
       - name: Check compiler version
         shell: bash
         run : |
-          sbt --batch --no-colors "show scala3-compiler-bootstrapped/version"
-          version=$(sbt --batch --no-colors "show scala3-compiler-bootstrapped/version" \
-            | grep -Eo "3\.[0-9]+\.[0-9]+(-RC[0-9]+)?")
+          version=$(./project/scripts/sbt "print scala3-compiler-bootstrapped/version" | tail -n1)
+          echo "This build version: ${version}"
           if [ "${version}" = "${{ env.RELEASE_TAG }}" ]; then
             echo "Compiler version '${version}' matches tag: ${{  env.RELEASE_TAG }}"
           else
@@ -100,8 +99,8 @@ jobs:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
         - ${{ github.workspace }}/../../cache/ivy:/root/.ivy2/cache
         - ${{ github.workspace }}/../../cache/general:/root/.cache
-    # env:
-      # NIGHTLYBUILD: yes
+    env:
+      NIGHTLYBUILD: yes
 
     steps:
       ######################################################################################
@@ -132,9 +131,9 @@ jobs:
       - name: Check compiler version
         shell: bash
         run : |
-          sbt --batch --no-colors "show scala3-compiler-bootstrapped/version"
-          if ! sbt --batch --no-colors "show scala3-compiler-bootstrapped/version" \
-            | grep -Eo "3\.[0-9]+\.[0-9]+-RC[0-9]+-bin-[0-9]{8}-[a-zA-Z0-9]{7}-NIGHTLY" >/dev/null 2>&1; then
+          version=$(./project/scripts/sbt "print scala3-compiler-bootstrapped/version" | tail -n1)
+          echo "This build version: ${version}"
+          if ! grep -Eo "3\.[0-9]+\.[0-9]+-RC[0-9]+-bin-[0-9]{8}-[a-zA-Z0-9]{7}-NIGHTLY" <<< "$version"; then
             echo "Version used by compiler to publish nightly release does not match expected pattern"
             exit 1
           fi
