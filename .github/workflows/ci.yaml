@@ -858,7 +858,7 @@ jobs:
       # Run the MSI installer
       - name: Install Scala Runner
         run: |
-          msiexec /i scala.msi /quiet /qn /norestart
+          msiexec /i scala.msi
 
       # Run tests to ensure the Scala Runner was installed and works
       - name: Test Scala Runner
