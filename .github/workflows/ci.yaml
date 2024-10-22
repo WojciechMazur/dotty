@@ -857,8 +857,14 @@ jobs:
 
       # Run the MSI installer
       - name: Install Scala Runner
+        shell: pwsh
         run: |
-          msiexec /i scala.msi
+          $file = "scala.msi" 
+          $log = "install.log" 
+          $procMain = Start-Process "msiexec" "/i `"$file`" /qn /l*! `"$log`"" -NoNewWindow -PassThru
+          $procLog = Start-Process "powershell" "Get-Content -Path `"$log`" -Wait" -NoNewWindow -PassThru 
+          $procMain.WaitForExit() 
+          $procLog.Kill()
 
       # Run tests to ensure the Scala Runner was installed and works
       - name: Test Scala Runner
