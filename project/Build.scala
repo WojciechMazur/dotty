@@ -2631,11 +2631,10 @@ object ScaladocConfigs {
       .add(DocRootContent(s"$scalaLibrarySrc/rootdoc.txt"))
       .withTargets(
         Seq(
-          s"out/bootstrap/scala2-library-bootstrapped/scala-$version-bin-SNAPSHOT-nonbootstrapped/classes",
-          s"out/bootstrap/scala3-library-bootstrapped/scala-$version-bin-SNAPSHOT-nonbootstrapped/classes",
-          s"tmp/interfaces/target/classes",
-          s"out/bootstrap/tasty-core-bootstrapped/scala-$version-bin-SNAPSHOT-nonbootstrapped/classes"
-        )
+          (`scala2-library-bootstrapped` / Compile / classDirectory).value,
+          (`scala3-library-bootstrapped` / Compile / classDirectory).value,
+          (`tasty-core-bootstrapped` / Compile / classDirectory).value,
+        ).map(_.toPath.toAbsolutePath().toString())
       )
       .remove[SiteRoot]
       .remove[ApiSubdirectory]

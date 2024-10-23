@@ -15,7 +15,8 @@ on:
 
 env:
   # NECESSARY FLAG TO CORRECTLY CONFIGURE THE VERSION FOR SCALA
-  RELEASEBUILD: yes
+  RELEASEBUILD: ${{ startsWith(github.event.ref, 'refs/tags/') && 'yes' || 'no' }}
+  SNAPSHOTBUILD: ${{ startsWith(github.event.ref, 'refs/tags/') && 'no' || 'yes' }}
 
 jobs:
   build:
