@@ -544,12 +544,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: scala.msi
-          path: scala3-3.6.2.msi
+          path: .
       - name: Prepare MSI package
         shell: bash
         run: | 
-          sha256sum "scala3-3.6.2.msi" > scala3-3.6.2.msi.sha256
-          cat scala3-3.6.2.msi.sha256
+          msiInstaller=scala3-3.6.2.msi
+          mv scala.msi "${msiInstaller}"
+          sha256sum "${msiInstaller}" > "${msiInstaller}.sha256"
+          cat ${msiInstaller}.sha256
       # # Create the GitHub release
       # - name: Create GitHub Release
       #   id: create_gh_release
