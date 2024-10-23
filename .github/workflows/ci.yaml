@@ -845,15 +845,13 @@ jobs:
     if  : github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[test_msi]')
 
   test-msi-package:
-    runs-on: windows-latest
-    name: Test MSI Installation
+    uses: ./.github/workflows/test-msi.yml
     needs: [build-msi-package]
-    steps:
-      - name: Download MSI artifact
-        uses: ./.github/workflows/test-msi.yml
-        with:
-          version: "3."
-          java-version: 8
+    with:
+      # Ensure that version starts with prefix 3.
+      # In the future it can be adapted to compare with with git tag or version set in the build.s 
+      version: "3."
+      java-version: 8
 
   build-sdk-package:
     uses: ./.github/workflows/build-sdk.yml
