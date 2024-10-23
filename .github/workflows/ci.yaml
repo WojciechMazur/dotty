@@ -861,6 +861,7 @@ jobs:
         run: |
           Start-Process 'msiexec.exe' -ArgumentList '/I "scala.msi" /L*V "install.log" /qb' -Wait
           Get-Content 'install.log'
+          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\scala\bin"
 
       # Run tests to ensure the Scala Runner was installed and works
       - name: Test Scala Runner
