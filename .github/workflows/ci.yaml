@@ -453,7 +453,7 @@ jobs:
   test_release:
     permissions:
       contents: write  # for actions/create-release to create a release
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-22.04
     container:
       image: lampepfl/dotty:2024-10-18
       options: --cpu-shares 4096
