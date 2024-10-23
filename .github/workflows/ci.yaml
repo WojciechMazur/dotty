@@ -850,26 +850,10 @@ jobs:
     needs: [build-msi-package]
     steps:
       - name: Download MSI artifact
-        uses: actions/download-artifact@v4
+        uses: ./.github/workflows/test-msi.yml
         with:
-          name: scala.msi
-          path: .
-
-      # Run the MSI installer
-      - name: Install Scala Runner
-        shell: pwsh
-        run: |
-          Start-Process 'msiexec.exe' -ArgumentList '/I "scala.msi" /L*V "install.log" /qb' -Wait
-          Get-Content 'install.log'
-          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\scala\bin"
-
-      # Run tests to ensure the Scala Runner was installed and works
-      - name: Test Scala Runner
-        shell: pwsh
-        run: |
-          # Ensure the Scala runner is installed correctly by running it
-          echo $env:PATH
-          scala --version
+          version: "3."
+          java-version: 8
 
   build-sdk-package:
     uses: ./.github/workflows/build-sdk.yml
