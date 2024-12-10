@@ -54,7 +54,7 @@ env:
 
 jobs:
   test_non_bootstrapped:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -105,7 +105,7 @@ jobs:
           ./project/scripts/cmdTests
 
   test:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -164,7 +164,7 @@ jobs:
         run: ./project/scripts/sbt ";set ThisBuild/Build.scala2Library := Build.Scala2LibraryCCTasty; scala2-library-cc/compile; scala2-library-cc-tasty/compile; scala3-bootstrapped/testCompilation i3"
 
   test_scala2_library_tasty:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -288,7 +288,7 @@ jobs:
 
   mima:
     name: MiMa
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -338,7 +338,7 @@ jobs:
           ./project/scripts/scala2-library-tasty-mima.sh
 
   community_build_a:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -393,7 +393,7 @@ jobs:
         run: cat community-build/dotty-community-build-deps || true
 
   community_build_b:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -448,7 +448,7 @@ jobs:
         run: cat community-build/dotty-community-build-deps || true
 
   community_build_c:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -503,7 +503,7 @@ jobs:
         run: cat community-build/dotty-community-build-deps || true
 
   test_sbt:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -547,7 +547,7 @@ jobs:
         run: ./project/scripts/sbt "sbt-test/scripted; sbt-community-build/scripted"
 
   test_java8:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -606,7 +606,7 @@ jobs:
           ./project/scripts/sbt ";sjsSandbox/run ;sjsSandbox/test ;sjsJUnitTests/test ;set sjsJUnitTests/scalaJSLinkerConfig ~= switchToESModules ;sjsJUnitTests/test ;sjsCompilerTests/test"
 
   publish_nightly:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -676,7 +676,7 @@ jobs:
           ./project/scripts/sbtPublish ";project scala3-bootstrapped ;publishSigned ;sonatypeBundleRelease"
 
   nightly_documentation:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -720,7 +720,7 @@ jobs:
   publish_release:
     permissions:
       contents: write  # for actions/create-release to create a release
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
@@ -1129,7 +1129,7 @@ jobs:
 
 
   open_issue_on_failure:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: wojciechmazur95/dotty:2024-12-10-test
     needs: [nightly_documentation, test_windows_full]
