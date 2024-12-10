@@ -54,9 +54,9 @@ env:
 
 jobs:
   test_non_bootstrapped:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -80,7 +80,6 @@ jobs:
       ## Workaround for https://github.com/actions/runner/issues/2033 (See https://github.com/scala/scala3/pull/19720)
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -106,9 +105,9 @@ jobs:
           ./project/scripts/cmdTests
 
   test:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -133,7 +132,6 @@ jobs:
 
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -166,9 +164,9 @@ jobs:
         run: ./project/scripts/sbt ";set ThisBuild/Build.scala2Library := Build.Scala2LibraryCCTasty; scala2-library-cc/compile; scala2-library-cc-tasty/compile; scala3-bootstrapped/testCompilation i3"
 
   test_scala2_library_tasty:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -190,7 +188,6 @@ jobs:
 
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -229,7 +226,6 @@ jobs:
       - name: Reset existing repo
         shell: cmd
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Git Checkout
@@ -273,7 +269,6 @@ jobs:
       - name: Reset existing repo
         shell: cmd
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Git Checkout
@@ -293,9 +288,9 @@ jobs:
 
   mima:
     name: MiMa
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -319,7 +314,6 @@ jobs:
 
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -344,9 +338,9 @@ jobs:
           ./project/scripts/scala2-library-tasty-mima.sh
 
   community_build_a:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -374,7 +368,6 @@ jobs:
         run: echo "/usr/lib/jvm/java-8-openjdk-amd64/bin" >> $GITHUB_PATH
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -391,7 +384,6 @@ jobs:
 
       - name: Test
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git submodule sync
           git submodule update --init --recursive --jobs 7
           ./project/scripts/sbt "community-build/testOnly dotty.communitybuild.CommunityBuildTestA"
@@ -401,9 +393,9 @@ jobs:
         run: cat community-build/dotty-community-build-deps || true
 
   community_build_b:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -431,7 +423,6 @@ jobs:
         run: echo "/usr/lib/jvm/java-8-openjdk-amd64/bin" >> $GITHUB_PATH
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -448,7 +439,6 @@ jobs:
 
       - name: Test
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git submodule sync
           git submodule update --init --recursive --jobs 7
           ./project/scripts/sbt "community-build/testOnly dotty.communitybuild.CommunityBuildTestB"
@@ -458,9 +448,9 @@ jobs:
         run: cat community-build/dotty-community-build-deps || true
 
   community_build_c:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -488,7 +478,6 @@ jobs:
         run: echo "/usr/lib/jvm/java-8-openjdk-amd64/bin" >> $GITHUB_PATH
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -505,7 +494,6 @@ jobs:
 
       - name: Test
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git submodule sync
           git submodule update --init --recursive --jobs 7
           ./project/scripts/sbt "community-build/testOnly dotty.communitybuild.CommunityBuildTestC"
@@ -515,9 +503,9 @@ jobs:
         run: cat community-build/dotty-community-build-deps || true
 
   test_sbt:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -541,7 +529,6 @@ jobs:
 
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -560,9 +547,9 @@ jobs:
         run: ./project/scripts/sbt "sbt-test/scripted; sbt-community-build/scripted"
 
   test_java8:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -593,7 +580,6 @@ jobs:
 
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -620,9 +606,9 @@ jobs:
           ./project/scripts/sbt ";sjsSandbox/run ;sjsSandbox/test ;sjsJUnitTests/test ;set sjsJUnitTests/scalaJSLinkerConfig ~= switchToESModules ;sjsJUnitTests/test ;sjsCompilerTests/test"
 
   publish_nightly:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -648,7 +634,6 @@ jobs:
         run: echo "/usr/lib/jvm/java-8-openjdk-amd64/bin" >> $GITHUB_PATH
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -691,9 +676,9 @@ jobs:
           ./project/scripts/sbtPublish ";project scala3-bootstrapped ;publishSigned ;sonatypeBundleRelease"
 
   nightly_documentation:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -706,7 +691,6 @@ jobs:
     steps:
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -723,7 +707,6 @@ jobs:
 
       - name: Generate Website
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           ./project/scripts/genDocs -doc-snapshot
 
       - name: Deploy Website to https://dotty.epfl.ch
@@ -737,9 +720,9 @@ jobs:
   publish_release:
     permissions:
       contents: write  # for actions/create-release to create a release
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
       options: --cpu-shares 4096
       volumes:
         - ${{ github.workspace }}/../../cache/sbt:/root/.sbt
@@ -764,7 +747,6 @@ jobs:
         run: echo "/usr/lib/jvm/java-8-openjdk-amd64/bin" >> $GITHUB_PATH
       - name: Reset existing repo
         run: |
-          git config --global --add safe.directory /__w/scala3/scala3
           git -c "http.https://github.com/.extraheader=" fetch --recurse-submodules=no "https://github.com/scala/scala3" && git reset --hard FETCH_HEAD || true
 
       - name: Checkout cleanup script
@@ -1147,9 +1129,9 @@ jobs:
 
 
   open_issue_on_failure:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
-      image: lampepfl/dotty:2024-10-18
+      image: wojciechmazur95/dotty:2024-12-10-test
     needs: [nightly_documentation, test_windows_full]
     # The `failure()` expression is true iff at least one of the dependencies
     # of this job (including transitive dependencies) has failed.
