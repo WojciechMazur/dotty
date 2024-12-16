@@ -37,6 +37,11 @@ object Path {
     val ext = extension(name)
     ext == "jar" || ext == "zip"
   }
+  def fileExtension(name: String): FileExtension = {
+    val i = name.lastIndexOf('.')
+    if (i < 0) FileExtension.Empty
+    else FileExtension.from(name.substring(i + 1))
+  }
   def extension(name: String): String = {
     var i = name.length - 1
     while (i >= 0 && name.charAt(i) != '.')
@@ -160,6 +165,8 @@ class Path private[io] (val jpath: JPath) {
     val p = parent
     if (p isSame this) Nil else p :: p.parents
   }
+  def ext: FileExtension = Path.fileExtension(name)
+
   // if name ends with an extension (e.g. "foo.jpg") returns the extension ("jpg"), otherwise ""
   def extension: String = Path.extension(name)
   // compares against extensions in a CASE INSENSITIVE way.
