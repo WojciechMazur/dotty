@@ -174,7 +174,7 @@ private sealed trait WarningSettings:
     name = "-Wunused",
     helpArg = "warning",
     descr = "Enable or disable specific `unused` warnings",
-    choices = List( 
+    choices = List(
       ChoiceWithHelp("nowarn", ""),
       ChoiceWithHelp("all", ""),
       ChoiceWithHelp(
@@ -446,6 +446,7 @@ private sealed trait YSettings:
 
   val YnoDecodeStacktraces: Setting[Boolean] = BooleanSetting("-Yno-decode-stacktraces", "Show raw StackOverflow stacktraces, instead of decoding them into triggering operations.")
   val YnoEnrichErrorMessages: Setting[Boolean] = BooleanSetting("-Yno-enrich-error-messages", "Show raw error messages, instead of enriching them with contextual information.")
+  val YimplicitAsGiven: Setting[Boolean] = BooleanSetting("-Yimplicit-as-given", "Interpret the compiled implicit keywords as their scala-3 given counterparts.")
 
   val Yinstrument: Setting[Boolean] = BooleanSetting("-Yinstrument", "Add instrumentation code that counts allocations and closure creations.")
   val YinstrumentDefs: Setting[Boolean] = BooleanSetting("-Yinstrument-defs", "Add instrumentation code that counts method calls; needs -Yinstrument to be set, too.")
